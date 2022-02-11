@@ -1,0 +1,65 @@
+name: Build the App and publish it to realeases
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    build-android:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repo
+              uses: actions/checkout@v2
+
+            - name: Check if tag is pre-release
+              id: tag
+              run: |
+                  echo ::set-output name=name::${GITHUB_REF#refs/*/}
+                  if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$ ]]; then
+                    echo ::set-output name=match::true
+                  fi
+
+            - id: "yarn-cache"
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+
+            - uses: "actions/cache@v2.1.6"
+              with:
+                  path: ${{ steps.yarn-cache.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+            - name: Install yarn dependencies
+              run: |
+                  yarn --frozen-lockfile
+
+            - name: Decode Keystore
+              id: decode_keystore
+              uses: timheuer/base64-to-file@v1
+              with:
+                  fileName: "keystore/sign-key.keystore"
+                  encodedString: ${{ secrets.KEYSTORE_FILE }}
+
+            - name: Move Keystore
+              run: |
+                  mv ${{ steps.decode_keystore.outputs.filePath }} android/app/sign-key.keystore
+
+            - name: Prepare gradlew
+              run: |
+                  cd android
+                  chmod +x ./gradlew
+                  echo "${{ secrets.KEYSTORE_PROPERTIES }}" >> keystore.properties
+
+            - name: Build Android Release
+              run: |
+                  cd android
+                  ./gradlew assembleRelease
+
+            - name: Create new release
+              uses: "marvinpinto/action-automatic-releases@latest"
+              with:
+                  repo_token: ${{ secrets.GITHUB_TOKEN }}
+                  prerelease: ${{ steps.tag.outputs.match == 'true' }}
+                  title: "Version: ${{ steps.tag.outputs.name }}"
+                  files: |
+                      android/app/build/outputs/apk/release/kalkulator-jelnicki-release.apk
+                      android/app/build/outputs/apk/release/output-metadata.json

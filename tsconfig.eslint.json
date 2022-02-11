@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "types": [
+            "@types/node"
+        ],
+        "noEmit": true,
+        "allowJs": true
+    },
+    "exclude": [
+        "node_modules",
+        "android",
+        "ios"
+    ],
+    "extends": "./tsconfig.json"
+}
