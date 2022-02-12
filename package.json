@@ -1,6 +1,6 @@
 {
 	"name": "@pxseu/kalkulator-jelnicki",
-	"version": "0.0.25",
+	"version": "1.0.0",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
