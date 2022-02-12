@@ -1,10 +1,9 @@
-import Calculator from "@comp/Calculator";
 import React, { FC } from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, Text } from "react-native";
 
 const App: FC = () => (
 	<SafeAreaView>
-		<Calculator />
+		<Text>Hello world!</Text>
 	</SafeAreaView>
 );
 
